@@ -45,7 +45,7 @@ Colors = [
 colorsPool = cycle(Colors)
 
 # Angle width of beams [degrees]
-dAlphaDeg = 45
+dAlphaDeg = 5
 
 # ---------------------------------------------------
 # Initialization
