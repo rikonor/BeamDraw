@@ -1,5 +1,6 @@
 from PIL import Image, ImageDraw
 import math
+from itertools import cycle
 
 # ---------------------------------------------------
 # Utility Functions
@@ -23,24 +24,34 @@ def buildTriangle(Xc, Yc, dLength, alpha, dAlpha):
 	x2 = Xc + dLength*math.cos(alpha + dAlpha)
 	y2 = Yc + dLength*math.sin(alpha + dAlpha)
 	return ((Xc, Yc), (x1, y1), (x2, y2))
+
 # ---------------------------------------------------
 # Global Settings
 # ---------------------------------------------------
 
-# ---------------------------------------------------
 # Image dims
 Xmax = 5000
 Ymax = 2500
 
 # Location of beamer
-# Xc = 100
-# Yc = 50
-# Center
-Xc = Xmax / 4
+Xc = Xmax / 2
 Yc = Ymax / 2
 
-# Angle width of beams [degrees] (Beware of artifacts when over ~10 degrees)
-dAlphaDeg = 5
+# Colors
+Colors = [
+	"#fcef60",
+	"#faeb1b",
+]
+colorsPool = cycle(Colors)
+
+# Angle width of beams [degrees]
+dAlphaDeg = 45
+
+# ---------------------------------------------------
+# Initialization
+# ---------------------------------------------------
+
+# Set dAlpha in radians
 dAlpha = degToRad(dAlphaDeg)
 
 # Find the largest chord in the drawing
@@ -50,28 +61,34 @@ dCorners = [
 	dPoints((Xc, Yc), (Xmax, 0)),
 	dPoints((Xc, Yc), (Xmax, Ymax))
 ]
-dLength = max(dCorners)
+dCornerLength = max(dCorners)
+dLength = dCornerLength / (math.sin(dAlpha / 2))
 
-N = 360 / dAlphaDeg
+# Set number of rays
+N = 360 / dAlphaDeg + 1
 
-### CHOOSE COLORS ###
-Color1 = "#fcef60"
-Color2 = "#faeb1b"
+# Minimal start angle
+alpha = 0.0001
 
-# Start working
-alpha = 0.01
+# ---------------------------------------------------
+# Main Program
+# ---------------------------------------------------
 
+# Init img and draw
 img = Image.new('RGB', (Xmax, Ymax))
 draw = ImageDraw.Draw(img)
 
+# Draw beams
 for i in range(N):
 	p0, p1, p2 = buildTriangle(Xc, Yc, dLength, alpha + i*dAlpha, dAlpha)
-	if (i % 2 == 0):
-		draw.polygon(p0 + p1 + p2, fill=Color1)
-	else:
-		draw.polygon(p0 + p1 + p2, fill=Color2)
+	draw.polygon(p0 + p1 + p2, fill=colorsPool.next())
 
+# Clean up
 del draw
-imgName = "images/img.%d.%dx%d.(%s-%s).jpeg" % (dAlphaDeg, Xmax, Ymax, Color1, Color2)
+
+# Save or Show file
+imgName = "images/img.%d.%dx%d.jpeg" % (dAlphaDeg, Xmax, Ymax)
 img.save(imgName, quality=100, optimize=True, progressive=True)
 # img.show()
+
+# ---------------------------------------------------
